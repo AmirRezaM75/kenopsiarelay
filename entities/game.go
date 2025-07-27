@@ -1,6 +1,6 @@
 package entities
 
-import "github.com/amirrezam75/kenopsiarelay/pkg/syncx"
+import "github.com/AmirRezaM75/kenopsiarelay/pkg/syncx"
 
 // GameState represents any game-specific state that can be stored in a game
 type GameState interface{}

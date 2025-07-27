@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/amirrezam75/kenopsiarelay/pkg/logx"
+	"github.com/AmirRezaM75/kenopsiarelay/pkg/logx"
 	"net/http"
 
 	"go.uber.org/zap"

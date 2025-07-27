@@ -3,7 +3,7 @@ package entities
 import (
 	"sync"
 
-	"github.com/amirrezam75/kenopsiarelay/pkg/logx"
+	"github.com/AmirRezaM75/kenopsiarelay/pkg/logx"
 	"github.com/gorilla/websocket"
 
 	"go.uber.org/zap"

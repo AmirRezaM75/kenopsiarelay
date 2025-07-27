@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/amirrezam75/kenopsiarelay/entities"
-	"github.com/amirrezam75/kenopsiarelay/pkg/gameserver"
+	"github.com/AmirRezaM75/kenopsiarelay/entities"
+	"github.com/AmirRezaM75/kenopsiarelay/pkg/gameserver"
 )
 
 // SixNimmtGameState represents the state for a 6 Nimmt game

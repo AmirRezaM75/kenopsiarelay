@@ -1,13 +1,13 @@
 package gameserver
 
 import (
+	"github.com/AmirRezaM75/kenopsiarelay/entities"
+	"github.com/AmirRezaM75/kenopsiarelay/handlers"
+	"github.com/AmirRezaM75/kenopsiarelay/pkg/logx"
+	"github.com/AmirRezaM75/kenopsiarelay/schemas"
+	"github.com/AmirRezaM75/kenopsiarelay/services"
 	middlwares "github.com/amirrezam75/kenopsiacommon/middlwares"
 	"github.com/amirrezam75/kenopsialobby"
-	"github.com/amirrezam75/kenopsiarelay/entities"
-	"github.com/amirrezam75/kenopsiarelay/handlers"
-	"github.com/amirrezam75/kenopsiarelay/pkg/logx"
-	"github.com/amirrezam75/kenopsiarelay/schemas"
-	"github.com/amirrezam75/kenopsiarelay/services"
 	"github.com/amirrezam75/kenopsiauser"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"

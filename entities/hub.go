@@ -1,8 +1,8 @@
 package entities
 
 import (
-	"github.com/amirrezam75/kenopsiarelay/pkg/syncx"
-	"github.com/amirrezam75/kenopsiarelay/schemas"
+	"github.com/AmirRezaM75/kenopsiarelay/pkg/syncx"
+	"github.com/AmirRezaM75/kenopsiarelay/schemas"
 )
 
 type Hub[S GameState] struct {

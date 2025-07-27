@@ -1,6 +1,6 @@
 package gameserver
 
-import "github.com/amirrezam75/kenopsiarelay/entities"
+import "github.com/AmirRezaM75/kenopsiarelay/entities"
 
 // Config contains all configuration options for the game server
 type Config[S entities.GameState] struct {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/amirrezam75/kenopsiarelay/pkg/logx"
+	"github.com/AmirRezaM75/kenopsiarelay/pkg/logx"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"

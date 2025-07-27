@@ -1,4 +1,4 @@
-module github.com/amirrezam75/kenopsiarelay
+module github.com/AmirRezaM75/kenopsiarelay
 
 go 1.24.5
 
