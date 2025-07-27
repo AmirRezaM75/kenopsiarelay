@@ -1,9 +1,10 @@
 package entities
 
 import (
+	"sync"
+
 	"github.com/amirrezam75/kenopsiarelay/pkg/logx"
 	"github.com/gorilla/websocket"
-	"sync"
 
 	"go.uber.org/zap"
 )
@@ -83,16 +84,18 @@ func (player *Player) Write() {
 	}
 }
 
-func (player *Player) unsubscribe(hub *Hub) {
+// unsubscribe is a generic function to unsubscribe a player from a hub
+func unsubscribe[S GameState](player *Player, hub *Hub[S]) {
 	if game := hub.FindGame(player.GameId); game != nil {
 		//game.Left(hub, player.Id)
 	}
 }
 
-func (player *Player) Read(hub *Hub) {
+// Read is a generic function to read messages for a player
+func Read[S GameState](player *Player, hub *Hub[S]) {
 	defer func() {
 		player.Kick()
-		player.unsubscribe(hub)
+		unsubscribe(player, hub)
 	}()
 
 	for {
@@ -109,11 +112,12 @@ func (player *Player) Read(hub *Hub) {
 
 		// TODO: Unmarshal
 
-		player.react(message, hub)
+		react(player, message, hub)
 	}
 }
 
-func (player *Player) react(message []byte, hub *Hub) {
+// react is a generic function to handle player reactions
+func react[S GameState](player *Player, message []byte, hub *Hub[S]) {
 	game := hub.FindGame(player.GameId)
 
 	if game == nil {

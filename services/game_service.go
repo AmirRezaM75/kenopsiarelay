@@ -2,6 +2,10 @@ package services
 
 import (
 	"errors"
+	"math/rand"
+	"strconv"
+	"time"
+
 	"github.com/amirrezam75/kenopsialobby"
 	"github.com/amirrezam75/kenopsiarelay/entities"
 	"github.com/amirrezam75/kenopsiarelay/pkg/logx"
@@ -10,25 +14,22 @@ import (
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.uber.org/zap"
-	"math/rand"
-	"strconv"
-	"time"
 )
 
-type GameService struct {
-	hub              *entities.Hub
+type GameService[S entities.GameState] struct {
+	hub              *entities.Hub[S]
 	userRepository   kenopsiauser.UserRepository
 	lobbyRepository  kenopsialobby.LobbyRepository
 	publisherService PublisherService
 }
 
-func NewGameService(
-	hub *entities.Hub,
+func NewGameService[S entities.GameState](
+	hub *entities.Hub[S],
 	userRepository kenopsiauser.UserRepository,
 	lobbyRepository kenopsialobby.LobbyRepository,
 	publisherService PublisherService,
-) GameService {
-	return GameService{
+) GameService[S] {
+	return GameService[S]{
 		hub:              hub,
 		userRepository:   userRepository,
 		lobbyRepository:  lobbyRepository,
@@ -43,7 +44,7 @@ var (
 	LobbyNotFound  = errors.New("lobby not found")
 )
 
-func (gameService GameService) Join(gameId, ticketId string, connection *websocket.Conn) (func(), error) {
+func (gameService GameService[S]) Join(gameId, ticketId string, connection *websocket.Conn) (func(), error) {
 	userId, err := gameService.userRepository.AcquireUserId(ticketId)
 
 	if err != nil {
@@ -78,11 +79,11 @@ func (gameService GameService) Join(gameId, ticketId string, connection *websock
 	go player.Write()
 
 	return func() {
-		player.Read(gameService.hub)
+		entities.Read(player, gameService.hub)
 	}, nil
 }
 
-func (gameService GameService) Create(
+func (gameService GameService[S]) Create(
 	user kenopsiauser.User,
 	payload schemas.CreateGameRequest,
 ) (*schemas.CreateGameResponse, error) {
@@ -101,12 +102,13 @@ func (gameService GameService) Create(
 		return nil, LobbyNotFound
 	}
 
-	game := &entities.Game{
+	game := &entities.Game[S]{
 		Id:        bson.NewObjectID().Hex(),
 		Status:    "pending",
 		CreatorId: user.Id,
 		CreatedAt: time.Now().Unix(),
 		LobbyId:   lobby.Id,
+		State:     gameService.hub.GameStateFactory(),
 	}
 
 	rand.Seed(time.Now().UnixNano())

@@ -5,6 +5,7 @@ import "github.com/amirrezam75/kenopsiarelay/pkg/syncx"
 // GameState represents any game-specific state that can be stored in a game
 type GameState interface{}
 
+// Game represents a game instance with generic state
 type Game[S GameState] struct {
 	Id        string
 	Status    string
@@ -17,3 +18,13 @@ type Game[S GameState] struct {
 }
 
 // TODO: OnPing and onLeft handlers
+/*
+func (game *Game) Ping(hub *Hub, playerId string) {
+	hub.Dispatch <- schemas.PongEvent(playerId, game.Id)
+}
+
+func (game *Game) Left(hub *Hub, playerId string) {
+	hub.Dispatch <- schemas.SomeoneLeftEvent(playerId, game.Id)
+}
+
+*/

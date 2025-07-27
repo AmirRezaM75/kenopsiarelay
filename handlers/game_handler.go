@@ -2,14 +2,16 @@ package handlers
 
 import (
 	"errors"
-	"github.com/amirrezam75/kenopsiacommon/middlwares"
+	"net/http"
+	"os"
+
+	middlewares "github.com/amirrezam75/kenopsiacommon/middlwares"
 	commonservices "github.com/amirrezam75/kenopsiacommon/services"
 	"github.com/amirrezam75/kenopsiarelay/pkg/logx"
 	"github.com/amirrezam75/kenopsiarelay/schemas"
 	"github.com/amirrezam75/kenopsiarelay/services"
+	"github.com/amirrezam75/kenopsiauser"
 	"github.com/go-chi/chi/v5"
-	"net/http"
-	"os"
 
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
@@ -23,13 +25,19 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// GameServiceInterface defines the operations needed by the handler
+type GameServiceInterface interface {
+	Create(user kenopsiauser.User, payload schemas.CreateGameRequest) (*schemas.CreateGameResponse, error)
+	Join(gameId, ticketId string, connection *websocket.Conn) (func(), error)
+}
+
 type GameHandler struct {
-	gameService services.GameService
+	gameService GameServiceInterface
 }
 
 func NewGameHandler(
 	router *chi.Mux,
-	gameService services.GameService,
+	gameService GameServiceInterface,
 	authMiddleware middlewares.Authenticate,
 ) {
 	gameHandler := GameHandler{gameService: gameService}

@@ -5,8 +5,8 @@ import (
 	"github.com/amirrezam75/kenopsiarelay/schemas"
 )
 
-type Hub struct {
-	Games syncx.Map[string, *Game]
+type Hub[S GameState] struct {
+	Games syncx.Map[string, *Game[S]]
 	// We must use a pointer for this type because protoimpl.MessageState
 	// includes a sync.Mutex field. The sync.Mutex type implements the sync.Locker interface,
 	// which means it is not safe to copy. If we were to use a value type instead of a pointer,
@@ -21,21 +21,24 @@ type Hub struct {
 	// The message is provided as a raw []byte, so it is your responsibility to decode it.
 	// You can choose the appropriate deserialization method, such as JSON unmarshalling or using
 	// a binary protocol like Protobuf, depending on your application's design and performance needs.
-	MessageHandler MessageHandler
+	MessageHandler MessageHandler[S]
+	// GameStateFactory creates new game states
+	GameStateFactory func() S
 }
 
 // NewHub contains an entity that uses mutexes for synchronization,
 // and passing locks by value is not a good practice.
 // Therefore, all receivers are passed by pointer to avoid copying
 // locks and ensure proper synchronization.
-func NewHub(messageHandler MessageHandler) *Hub {
-	return &Hub{
-		Dispatch:       make(chan *schemas.DispatcherMessage, 500),
-		MessageHandler: messageHandler,
+func NewHub[S GameState](messageHandler MessageHandler[S], gameStateFactory func() S) *Hub[S] {
+	return &Hub[S]{
+		Dispatch:         make(chan *schemas.DispatcherMessage, 500),
+		MessageHandler:   messageHandler,
+		GameStateFactory: gameStateFactory,
 	}
 }
 
-func (hub *Hub) Run() {
+func (hub *Hub[S]) Run() {
 	for {
 		select {
 		case message := <-hub.Dispatch:
@@ -57,9 +60,9 @@ func (hub *Hub) Run() {
 	}
 }
 
-type MessageHandler func(hub *Hub, game *Game, player *Player, message []byte) error
+type MessageHandler[S GameState] func(hub *Hub[S], game *Game[S], player *Player, message []byte) error
 
-func (hub *Hub) FindGame(id string) *Game {
+func (hub *Hub[S]) FindGame(id string) *Game[S] {
 	game, exists := hub.Games.Load(id)
 
 	if !exists {
