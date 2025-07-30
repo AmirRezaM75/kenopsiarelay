@@ -16,3 +16,14 @@ type Game[S GameState] struct {
 	// I used map[] in order to easily remove player and load it in O(1)
 	Players syncx.Map[string, *Player]
 }
+
+func (game Game[S]) getPlayerIds() []string {
+	var receiveIds []string
+
+	game.Players.Range(func(playerId string, _ *Player) bool {
+		receiveIds = append(receiveIds, playerId)
+		return true
+	})
+
+	return receiveIds
+}
