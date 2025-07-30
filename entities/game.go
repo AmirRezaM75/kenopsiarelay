@@ -17,7 +17,7 @@ type Game[S GameState] struct {
 	Players syncx.Map[string, *Player]
 }
 
-func (game Game[S]) getPlayerIds() []string {
+func (game Game[S]) GetPlayerIds() []string {
 	var receiveIds []string
 
 	game.Players.Range(func(playerId string, _ *Player) bool {
