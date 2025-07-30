@@ -10,7 +10,7 @@ type Config[S entities.GameState] struct {
 	LobbyService     LobbyServiceConfig
 	Publisher        PublisherConfig
 	Router           RouterConfig
-	OnMessage        entities.MessageHandler[S]
+	OnMessage        entities.MessageReceivedHandler[S]
 	GameStateFactory func() S
 }
 

@@ -73,8 +73,16 @@ func (gameService GameService[S]) Join(gameId, ticketId string, connection *webs
 	player.Connection = connection
 	player.IsConnected = true
 
-	//gameService.hub.Dispatch <- schemas.SomeoneJoinedEvent(player.Id, game.Id)
-	// TODO: onJoined()
+	err = gameService.hub.OnPlayerJoined(gameService.hub, game, player)
+
+	if err != nil {
+		logx.Logger.Error(
+			err.Error(),
+			zap.String("desc", "could not execute player joined handler"),
+			zap.String("gameId", game.Id),
+			zap.String("playerId", player.Id),
+		)
+	}
 
 	go player.Write()
 

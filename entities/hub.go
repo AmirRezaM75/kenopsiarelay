@@ -15,13 +15,14 @@ type Hub[S GameState] struct {
 	// Using a pointer ensures that there is only one instance of the mutex,
 	// maintaining proper synchronization across all operations.
 	Dispatch chan *schemas.DispatcherMessage
-	// MessageHandler is responsible for processing incoming messages from connected clients.
+	// OnMessageReceived is responsible for processing incoming messages from connected clients.
 	// Within this handler, you should parse the incoming request, perform any necessary validation,
 	// and update your game state accordingly based on the content of the message.
 	// The message is provided as a raw []byte, so it is your responsibility to decode it.
 	// You can choose the appropriate deserialization method, such as JSON unmarshalling or using
 	// a binary protocol like Protobuf, depending on your application's design and performance needs.
-	MessageHandler MessageHandler[S]
+	OnMessageReceived MessageReceivedHandler[S]
+	OnPlayerJoined    PlayerJoinedHandler[S]
 	// GameStateFactory creates new game states
 	GameStateFactory func() S
 }
@@ -30,11 +31,11 @@ type Hub[S GameState] struct {
 // and passing locks by value is not a good practice.
 // Therefore, all receivers are passed by pointer to avoid copying
 // locks and ensure proper synchronization.
-func NewHub[S GameState](messageHandler MessageHandler[S], gameStateFactory func() S) *Hub[S] {
+func NewHub[S GameState](messageReceivedHandler MessageReceivedHandler[S], gameStateFactory func() S) *Hub[S] {
 	return &Hub[S]{
-		Dispatch:         make(chan *schemas.DispatcherMessage, 500),
-		MessageHandler:   messageHandler,
-		GameStateFactory: gameStateFactory,
+		Dispatch:          make(chan *schemas.DispatcherMessage, 500),
+		OnMessageReceived: messageReceivedHandler,
+		GameStateFactory:  gameStateFactory,
 	}
 }
 
@@ -60,7 +61,8 @@ func (hub *Hub[S]) Run() {
 	}
 }
 
-type MessageHandler[S GameState] func(hub *Hub[S], game *Game[S], player *Player, message []byte) error
+type MessageReceivedHandler[S GameState] func(hub *Hub[S], game *Game[S], player *Player, message []byte) error
+type PlayerJoinedHandler[S GameState] func(hub *Hub[S], game *Game[S], player *Player) error
 
 func (hub *Hub[S]) FindGame(id string) *Game[S] {
 	game, exists := hub.Games.Load(id)

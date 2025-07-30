@@ -124,7 +124,7 @@ func react[S GameState](player *Player, message []byte, hub *Hub[S]) {
 		return
 	}
 
-	err := hub.MessageHandler(hub, game, player, message)
+	err := hub.OnMessageReceived(hub, game, player, message)
 
 	if err != nil {
 		logx.Logger.Error(
