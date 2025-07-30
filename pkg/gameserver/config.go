@@ -5,13 +5,15 @@ import "github.com/AmirRezaM75/kenopsiarelay/entities"
 // Config contains all configuration options for the game server
 type Config[S entities.GameState] struct {
 	// GameSlug which is defined in GameData service
-	GameSlug         string
-	UserService      UserServiceConfig
-	LobbyService     LobbyServiceConfig
-	Publisher        PublisherConfig
-	Router           RouterConfig
-	OnMessage        entities.MessageReceivedHandler[S]
-	GameStateFactory func() S
+	GameSlug          string
+	UserService       UserServiceConfig
+	LobbyService      LobbyServiceConfig
+	Publisher         PublisherConfig
+	Router            RouterConfig
+	OnMessageReceived entities.MessageReceivedHandler[S]
+	OnPlayerJoined    entities.PlayerJoinedHandler[S]
+	OnPlayerLeft      entities.PlayerLeftHandler[S]
+	GameStateFactory  func() S
 }
 
 // UserServiceConfig contains configuration for the user service

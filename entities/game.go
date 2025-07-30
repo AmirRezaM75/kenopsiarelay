@@ -16,15 +16,3 @@ type Game[S GameState] struct {
 	// I used map[] in order to easily remove player and load it in O(1)
 	Players syncx.Map[string, *Player]
 }
-
-// TODO: OnPing and onLeft handlers
-/*
-func (game *Game) Ping(hub *Hub, playerId string) {
-	hub.Dispatch <- schemas.PongEvent(playerId, game.Id)
-}
-
-func (game *Game) Left(hub *Hub, playerId string) {
-	hub.Dispatch <- schemas.SomeoneLeftEvent(playerId, game.Id)
-}
-
-*/

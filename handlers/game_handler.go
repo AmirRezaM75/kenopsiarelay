@@ -105,19 +105,8 @@ func (gameHandler GameHandler) join(w http.ResponseWriter, r *http.Request) {
 	reader, err := gameHandler.gameService.Join(gameId, ticketId, connection)
 
 	if err != nil {
-		/*message := schemas.ReportErrorMessage(err.Error())
-
-		binary, err := proto.Marshal(&message)*/
-		// TODO: onJoinFailure
-		if err != nil {
-			logx.Logger.Error(
-				err.Error(),
-				zap.String("desc", "could not marshal message"),
-			)
-			return
-		}
-
-		err = connection.WriteMessage(websocket.BinaryMessage, []byte("")) // TODO: use binary variable
+		// TODO: Add onJoinFailed handler to return decoded message
+		err = connection.WriteMessage(websocket.BinaryMessage, []byte(err.Error()))
 
 		if err != nil {
 			logx.Logger.Error(
@@ -125,6 +114,17 @@ func (gameHandler GameHandler) join(w http.ResponseWriter, r *http.Request) {
 				zap.String("desc", "could not write message"),
 			)
 		}
+
+		err = connection.Close()
+
+		if err != nil {
+			logx.Logger.Error(
+				err.Error(),
+				zap.String("desc", "could not close connection"),
+			)
+		}
+
+		return
 	}
 
 	reader()

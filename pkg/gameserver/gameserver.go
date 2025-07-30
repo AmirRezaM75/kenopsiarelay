@@ -23,7 +23,13 @@ type GameServer[S entities.GameState] struct {
 func NewGameServer[S entities.GameState](config Config[S]) *GameServer[S] {
 	logx.NewLogger()
 
-	hub := entities.NewHub(config.OnMessage, config.GameStateFactory)
+	hub := entities.NewHub(
+		config.GameSlug,
+		config.OnMessageReceived,
+		config.OnPlayerJoined,
+		config.OnPlayerLeft,
+		config.GameStateFactory,
+	)
 
 	userRepository := kenopsiauser.NewUserRepository(
 		config.UserService.BaseURL,

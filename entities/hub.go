@@ -6,7 +6,8 @@ import (
 )
 
 type Hub[S GameState] struct {
-	Games syncx.Map[string, *Game[S]]
+	GameSlug string
+	Games    syncx.Map[string, *Game[S]]
 	// We must use a pointer for this type because protoimpl.MessageState
 	// includes a sync.Mutex field. The sync.Mutex type implements the sync.Locker interface,
 	// which means it is not safe to copy. If we were to use a value type instead of a pointer,
@@ -23,6 +24,7 @@ type Hub[S GameState] struct {
 	// a binary protocol like Protobuf, depending on your application's design and performance needs.
 	OnMessageReceived MessageReceivedHandler[S]
 	OnPlayerJoined    PlayerJoinedHandler[S]
+	OnPlayerLeft      PlayerLeftHandler[S]
 	// GameStateFactory creates new game states
 	GameStateFactory func() S
 }
@@ -31,10 +33,19 @@ type Hub[S GameState] struct {
 // and passing locks by value is not a good practice.
 // Therefore, all receivers are passed by pointer to avoid copying
 // locks and ensure proper synchronization.
-func NewHub[S GameState](messageReceivedHandler MessageReceivedHandler[S], gameStateFactory func() S) *Hub[S] {
+func NewHub[S GameState](
+	gameSlug string,
+	messageReceivedHandler MessageReceivedHandler[S],
+	playerJoinedHandler PlayerJoinedHandler[S],
+	playerLeftHandler PlayerLeftHandler[S],
+	gameStateFactory func() S,
+) *Hub[S] {
 	return &Hub[S]{
+		GameSlug:          gameSlug,
 		Dispatch:          make(chan *schemas.DispatcherMessage, 500),
 		OnMessageReceived: messageReceivedHandler,
+		OnPlayerJoined:    playerJoinedHandler,
+		OnPlayerLeft:      playerLeftHandler,
 		GameStateFactory:  gameStateFactory,
 	}
 }
@@ -63,6 +74,7 @@ func (hub *Hub[S]) Run() {
 
 type MessageReceivedHandler[S GameState] func(hub *Hub[S], game *Game[S], player *Player, message []byte) error
 type PlayerJoinedHandler[S GameState] func(hub *Hub[S], game *Game[S], player *Player) error
+type PlayerLeftHandler[S GameState] func(hub *Hub[S], game *Game[S], player *Player) error
 
 func (hub *Hub[S]) FindGame(id string) *Game[S] {
 	game, exists := hub.Games.Load(id)

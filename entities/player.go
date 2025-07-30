@@ -87,7 +87,17 @@ func (player *Player) Write() {
 // unsubscribe is a generic function to unsubscribe a player from a hub
 func unsubscribe[S GameState](player *Player, hub *Hub[S]) {
 	if game := hub.FindGame(player.GameId); game != nil {
-		//game.Left(hub, player.Id)
+		err := hub.OnPlayerLeft(hub, game, player)
+
+		if err != nil {
+			logx.Logger.Error(
+				err.Error(),
+				zap.String("desc", "could not execute handler when player is left"),
+				zap.String("gameId", game.Id),
+				zap.String("playerId", player.Id),
+			)
+			return
+		}
 	}
 }
 
@@ -109,8 +119,6 @@ func Read[S GameState](player *Player, hub *Hub[S]) {
 			)
 			break
 		}
-
-		// TODO: Unmarshal
 
 		react(player, message, hub)
 	}

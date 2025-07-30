@@ -78,10 +78,11 @@ func (gameService GameService[S]) Join(gameId, ticketId string, connection *webs
 	if err != nil {
 		logx.Logger.Error(
 			err.Error(),
-			zap.String("desc", "could not execute player joined handler"),
+			zap.String("desc", "could not execute handler when player is joined"),
 			zap.String("gameId", game.Id),
 			zap.String("playerId", player.Id),
 		)
+		return nil, err
 	}
 
 	go player.Write()
@@ -160,7 +161,7 @@ func (gameService GameService[S]) Create(
 
 	gameService.hub.Games.Store(game.Id, game)
 
-	message, err := schemas.GameCreatedEvent(game.Id, lobby.Id, "6nimmt") // TODO: Config
+	message, err := schemas.GameCreatedEvent(game.Id, lobby.Id, gameService.hub.GameSlug)
 
 	if err != nil {
 		logx.Logger.Error(
