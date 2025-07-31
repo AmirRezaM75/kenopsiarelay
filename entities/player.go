@@ -47,7 +47,7 @@ func (player *Player) Kick() {
 		err := player.Connection.Close()
 
 		if err != nil {
-			logx.Logger.Error(
+			logx.Logger.Info(
 				err.Error(),
 				zap.String("desc", "could not close player connection"),
 				zap.String("playerId", player.Id),
@@ -98,13 +98,24 @@ func (player *Player) Write() {
 		err := player.Connection.WriteMessage(websocket.BinaryMessage, message)
 
 		if err != nil {
+			// Check if this is an unexpected connection error
+			// Also handle "use of closed network connection" which is not a WebSocket close error
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNormalClosure) {
+				logx.Logger.Error(
+					err.Error(),
+					zap.String("desc", "unexpected websocket write error"),
+					zap.String("playerId", player.Id),
+				)
+			} else {
+				logx.Logger.Info(
+					err.Error(),
+					zap.String("error", err.Error()),
+					zap.String("desc", "expected websocket write error"),
+					zap.String("playerId", player.Id),
+				)
+			}
 			// Continuing the loop would cause infinite error logging if connection is broken
 			// Better to exit and let the connection cleanup happen
-			logx.Logger.Error(
-				err.Error(),
-				zap.String("desc", "could not write player message"),
-				zap.String("playerId", player.Id),
-			)
 			return
 		}
 	}
@@ -148,11 +159,21 @@ func Read[S GameState](player *Player, hub *Hub[S]) {
 		_, message, err := player.Connection.ReadMessage()
 
 		if err != nil {
-			logx.Logger.Error(
-				err.Error(),
-				zap.String("desc", "could not read player message"),
-				zap.String("playerId", player.Id),
-			)
+			// This logs only unexpected errors, not normal browser refresh/close events
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNormalClosure) {
+				logx.Logger.Error(
+					err.Error(),
+					zap.String("desc", "unexpected websocket close error"),
+					zap.String("playerId", player.Id),
+				)
+			} else {
+				logx.Logger.Info(
+					"WebSocket connection closed by client",
+					zap.String("error", err.Error()),
+					zap.String("desc", "client disconnected"),
+					zap.String("playerId", player.Id),
+				)
+			}
 			return
 		}
 
