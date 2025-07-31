@@ -67,11 +67,11 @@ func (gameService GameService[S]) Join(gameId, ticketId string, connection *webs
 		return nil, PlayerNotFound
 	}
 
-	player.Kick()
-	player.Message = make(chan []byte, 50)
-	player.IsClosed = false
-	player.Connection = connection
-	player.IsConnected = true
+	// CRITICAL FIX: Use atomic reconnection to prevent race conditions
+	// Previously, Kick() would lock/unlock mutex but then we'd modify player state without protection
+	// This could cause Hub.Run() to read inconsistent state or send to wrong channel, causing panics
+	// The new Reconnect() method handles all state changes atomically under mutex protection
+	player.Reconnect(connection)
 
 	err = gameService.hub.OnPlayerJoined(gameService.hub, game, player)
 
@@ -119,8 +119,6 @@ func (gameService GameService[S]) Create(
 		LobbyId:   lobby.Id,
 		State:     gameService.hub.GameStateFactory(),
 	}
-
-	rand.Seed(time.Now().UnixNano())
 
 	humansCount := len(lobby.Players)
 	botsCount := len(lobby.Bots)

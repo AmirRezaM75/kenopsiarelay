@@ -58,7 +58,8 @@ func (gameHandler GameHandler) create(w http.ResponseWriter, r *http.Request) {
 	err := decode(&payload, r)
 	if err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		logx.Logger.Info(err, zap.String("desc", "could not decode payload"))
+		encode(schemas.ErrorResponse{Message: "The given payload is invalid."}, w)
+		logx.Logger.Warn(err.Error(), zap.String("desc", "could not decode CreateGameRequest"))
 		return
 	}
 
@@ -97,8 +98,8 @@ func (gameHandler GameHandler) join(w http.ResponseWriter, r *http.Request) {
 	ticketId := r.URL.Query().Get("ticketId")
 
 	if ticketId == "" {
-		logx.Logger.Info("ticketId is not provided")
-		w.WriteHeader(422)
+		logx.Logger.Info("ticketId parameter is missing in join request")
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -107,20 +108,18 @@ func (gameHandler GameHandler) join(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// TODO: Add onJoinFailed handler to return decoded message
 		err = connection.WriteMessage(websocket.BinaryMessage, []byte(err.Error()))
-
 		if err != nil {
 			logx.Logger.Error(
 				err.Error(),
-				zap.String("desc", "could not write message"),
+				zap.String("desc", "could not write error message to websocket"),
 			)
 		}
 
 		err = connection.Close()
-
 		if err != nil {
 			logx.Logger.Error(
 				err.Error(),
-				zap.String("desc", "could not close connection"),
+				zap.String("desc", "could not close websocket connection"),
 			)
 		}
 

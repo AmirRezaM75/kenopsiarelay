@@ -17,7 +17,10 @@ type Game[S GameState] struct {
 	Players syncx.Map[string, *Player]
 }
 
-func (game Game[S]) GetPlayerIds() []string {
+// GetPlayerIds returns a slice of all player IDs in the game
+// CONCURRENCY FIX: Use pointer receiver to avoid copying sync.Map locks
+// Value receivers would copy the internal sync.Map, causing race conditions
+func (game *Game[S]) GetPlayerIds() []string {
 	var receiveIds []string
 
 	game.Players.Range(func(playerId string, _ *Player) bool {

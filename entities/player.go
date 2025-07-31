@@ -58,6 +58,29 @@ func (player *Player) Kick() {
 	player.IsConnected = false
 }
 
+// Reconnect safely handles player reconnection with proper mutex protection
+// This method prevents race conditions during player reconnection
+// by atomically updating all player state under mutex protection
+func (player *Player) Reconnect(connection *websocket.Conn) {
+	player.mutex.Lock()
+	defer player.mutex.Unlock()
+
+	// We don't use Kick() here because it would cause double-locking of the mutex
+	if !player.IsClosed {
+		close(player.Message)
+		player.IsClosed = true
+	}
+
+	if player.Connection != nil {
+		_ = player.Connection.Close()
+	}
+
+	player.Message = make(chan []byte, 50)
+	player.IsClosed = false
+	player.Connection = connection
+	player.IsConnected = true
+}
+
 func (player *Player) Write() {
 	defer player.Kick()
 
@@ -69,17 +92,20 @@ func (player *Player) Write() {
 				"player channel is closed!",
 				zap.String("playerId", player.Id),
 			)
-			break
+			return
 		}
 
 		err := player.Connection.WriteMessage(websocket.BinaryMessage, message)
 
 		if err != nil {
+			// Continuing the loop would cause infinite error logging if connection is broken
+			// Better to exit and let the connection cleanup happen
 			logx.Logger.Error(
 				err.Error(),
 				zap.String("desc", "could not write player message"),
 				zap.String("playerId", player.Id),
 			)
+			return
 		}
 	}
 }
@@ -101,7 +127,6 @@ func unsubscribe[S GameState](player *Player, hub *Hub[S]) {
 	}
 }
 
-// Read is a generic function to read messages for a player
 func Read[S GameState](player *Player, hub *Hub[S]) {
 	defer func() {
 		player.Kick()
@@ -109,6 +134,17 @@ func Read[S GameState](player *Player, hub *Hub[S]) {
 	}()
 
 	for {
+		// CONTEXT CANCELLATION FIX: Check if context is cancelled before each read attempt
+		// This ensures the goroutine can exit gracefully when user shuts down the server
+		// We use select with default to make this non-blocking
+		select {
+		case <-hub.Context.Done():
+			// Context cancelled - shutdown gracefully
+			return
+		default:
+			// Continue to read
+		}
+
 		_, message, err := player.Connection.ReadMessage()
 
 		if err != nil {
@@ -117,7 +153,7 @@ func Read[S GameState](player *Player, hub *Hub[S]) {
 				zap.String("desc", "could not read player message"),
 				zap.String("playerId", player.Id),
 			)
-			break
+			return
 		}
 
 		react(player, message, hub)

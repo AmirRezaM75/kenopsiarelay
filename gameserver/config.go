@@ -1,9 +1,23 @@
 package gameserver
 
-import "github.com/AmirRezaM75/kenopsiarelay/entities"
+import (
+	"context"
+
+	"github.com/AmirRezaM75/kenopsiarelay/entities"
+)
 
 // Config contains all configuration options for the game server
 type Config[S entities.GameState] struct {
+	// LIFECYCLE MANAGEMENT: Context for controlling server shutdown
+	// This context flows from user application down through all components
+	// When cancelled, it triggers graceful shutdown of hub, players, and all goroutines
+	Context context.Context
+
+	// PERFORMANCE TUNING: Configure hub dispatch buffer size
+	// Controls how many messages can be queued for dispatch before blocking
+	// Higher values handle traffic spikes better but use more memory
+	DispatchBufferSize int
+
 	// GameSlug which is defined in GameData service
 	GameSlug          string
 	UserService       UserServiceConfig
