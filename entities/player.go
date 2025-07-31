@@ -168,9 +168,8 @@ func Read[S GameState](player *Player, hub *Hub[S]) {
 				)
 			} else {
 				logx.Logger.Info(
-					"WebSocket connection closed by client",
-					zap.String("error", err.Error()),
-					zap.String("desc", "client disconnected"),
+					err.Error(),
+					zap.String("desc", "WebSocket connection closed by client"),
 					zap.String("playerId", player.Id),
 				)
 			}
