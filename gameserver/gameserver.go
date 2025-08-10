@@ -89,6 +89,11 @@ func (gs *GameServer[S]) GetRouter() *chi.Mux {
 	return gs.router
 }
 
+// GetHub returns the hub instance
+func (gs *GameServer[S]) GetHub() *entities.Hub[S] {
+	return gs.hub
+}
+
 // Shutdown provides explicit shutdown method for immediate cleanup
 // Note: Hub will also shut down automatically when user cancels the context
 func (gs *GameServer[S]) Shutdown() {
