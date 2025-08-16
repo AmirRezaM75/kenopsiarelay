@@ -9,7 +9,7 @@ import (
 	"github.com/AmirRezaM75/kenopsiarelay/pkg/logx"
 	"github.com/AmirRezaM75/kenopsiarelay/schemas"
 	"github.com/AmirRezaM75/kenopsiarelay/services"
-	middlwares "github.com/amirrezam75/kenopsiacommon/middlwares"
+	"github.com/amirrezam75/kenopsiacommon/middlewares"
 	"github.com/amirrezam75/kenopsialobby"
 	"github.com/amirrezam75/kenopsiauser"
 	"github.com/go-chi/chi/v5"
@@ -19,8 +19,13 @@ import (
 
 // GameServer encapsulates all game server functionality
 type GameServer[S entities.GameState] struct {
-	router *chi.Mux
-	hub    *entities.Hub[S]
+	router      *chi.Mux
+	middlewares Middlewares
+	hub         *entities.Hub[S]
+}
+
+type Middlewares struct {
+	auth middlewares.Authenticate
 }
 
 // NewGameServer creates a new game server with the provided configuration
@@ -68,15 +73,16 @@ func NewGameServer[S entities.GameState](config Config[S]) *GameServer[S] {
 		MaxAge:           300,
 	}))
 
-	authMiddleware := middlwares.NewAuthenticateMiddleware(userRepository)
+	authMiddleware := middlewares.NewAuthenticateMiddleware(userRepository)
 
 	serviceAdapter := &gameServiceAdapter[S]{gameService: gameService}
 
 	handlers.NewGameHandler(router, serviceAdapter, authMiddleware)
 
 	gameServer := &GameServer[S]{
-		router: router,
-		hub:    hub,
+		router:      router,
+		hub:         hub,
+		middlewares: Middlewares{auth: authMiddleware},
 	}
 
 	go hub.Run()
@@ -92,6 +98,10 @@ func (gs *GameServer[S]) GetRouter() *chi.Mux {
 // GetHub returns the hub instance
 func (gs *GameServer[S]) GetHub() *entities.Hub[S] {
 	return gs.hub
+}
+
+func (gs *GameServer[S]) GetAuthMiddleware() middlewares.Authenticate {
+	return gs.middlewares.auth
 }
 
 // Shutdown provides explicit shutdown method for immediate cleanup

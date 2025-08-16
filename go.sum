@@ -1,5 +1,7 @@
 github.com/amirrezam75/kenopsiacommon v1.5.0 h1:tG0LznXIsKHaZzR2GhqphwclXf2PzZ/sigaoWkcRCPw=
 github.com/amirrezam75/kenopsiacommon v1.5.0/go.mod h1:I+2hNAx7JQprLyjxMwClgwofr+v1X6RngTbjyV7Jago=
+github.com/amirrezam75/kenopsiacommon v1.6.0 h1:7Kx2iVa8PWCoMZ+KrcBwFnWGm2Xjm3RnhvVarLCIxSQ=
+github.com/amirrezam75/kenopsiacommon v1.6.0/go.mod h1:I+2hNAx7JQprLyjxMwClgwofr+v1X6RngTbjyV7Jago=
 github.com/amirrezam75/kenopsialobby v1.1.0 h1:qr9b/Igp1m6HUj3dvoJQWBUqPAfzP3su/2VfMb9v/ec=
 github.com/amirrezam75/kenopsialobby v1.1.0/go.mod h1:gmkHF+yKF6BnV01QlF5dxKJDcTiOUWmpwYGWmWjS0vE=
 github.com/amirrezam75/kenopsiauser v1.5.0 h1:7w3npStHGUo6Z1iTgaM2r8sFxqi/DuqqTz2mymVDObo=
