@@ -8,7 +8,7 @@ import (
 	"github.com/AmirRezaM75/kenopsiarelay/pkg/logx"
 	"github.com/AmirRezaM75/kenopsiarelay/schemas"
 	"github.com/AmirRezaM75/kenopsiarelay/services"
-	middlewares "github.com/amirrezam75/kenopsiacommon/middlwares"
+	"github.com/amirrezam75/kenopsiacommon/middlewares"
 	commonservices "github.com/amirrezam75/kenopsiacommon/services"
 	"github.com/amirrezam75/kenopsiauser"
 	"github.com/go-chi/chi/v5"
