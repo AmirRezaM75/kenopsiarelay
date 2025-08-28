@@ -30,6 +30,7 @@ type Hub[S GameState] struct {
 	OnMessageReceived MessageReceivedHandler[S]
 	OnPlayerJoined    PlayerJoinedHandler[S]
 	OnPlayerLeft      PlayerLeftHandler[S]
+	OnGameCreated     GameCreatedHandler[S]
 	// GameStateFactory creates new game states
 	GameStateFactory func() S
 }
@@ -103,6 +104,7 @@ func (hub *Hub[S]) Run() {
 type MessageReceivedHandler[S GameState] func(hub *Hub[S], game *Game[S], player *Player, message []byte) error
 type PlayerJoinedHandler[S GameState] func(hub *Hub[S], game *Game[S], player *Player) error
 type PlayerLeftHandler[S GameState] func(hub *Hub[S], game *Game[S], player *Player) error
+type GameCreatedHandler[S GameState] func(hub *Hub[S], game *Game[S]) error
 
 func (hub *Hub[S]) FindGame(id string) *Game[S] {
 	game, exists := hub.Games.Load(id)

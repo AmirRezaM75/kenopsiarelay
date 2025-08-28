@@ -177,5 +177,17 @@ func (gameService GameService[S]) Create(
 		return nil, err
 	}
 
+	err = gameService.hub.OnGameCreated(gameService.hub, game)
+
+	if err != nil {
+		logx.Logger.Error(
+			err.Error(),
+			zap.String("lobbyId", payload.LobbyId),
+			zap.String("gameId", game.Id),
+			zap.String("desc", "could not execute handler when game is created"),
+		)
+		return nil, err
+	}
+
 	return &schemas.CreateGameResponse{GameId: game.Id}, nil
 }

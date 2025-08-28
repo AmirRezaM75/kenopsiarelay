@@ -27,6 +27,7 @@ type Config[S entities.GameState] struct {
 	OnMessageReceived entities.MessageReceivedHandler[S]
 	OnPlayerJoined    entities.PlayerJoinedHandler[S]
 	OnPlayerLeft      entities.PlayerLeftHandler[S]
+	OnGameCreated     entities.GameCreatedHandler[S]
 	GameStateFactory  func() S
 }
 
