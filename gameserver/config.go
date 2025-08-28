@@ -31,6 +31,19 @@ type Config[S entities.GameState] struct {
 	GameStateFactory  func() S
 }
 
+func (c *Config[S]) ToHubConfig() *entities.HubConfig[S] {
+	return &entities.HubConfig[S]{
+		Context:            c.Context,
+		DispatchBufferSize: c.DispatchBufferSize,
+		GameSlug:           c.GameSlug,
+		OnMessageReceived:  c.OnMessageReceived,
+		OnPlayerJoined:     c.OnPlayerJoined,
+		OnPlayerLeft:       c.OnPlayerLeft,
+		OnGameCreated:      c.OnGameCreated,
+		GameStateFactory:   c.GameStateFactory,
+	}
+}
+
 // UserServiceConfig contains configuration for the user service
 type UserServiceConfig struct {
 	BaseURL string

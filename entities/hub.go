@@ -7,6 +7,17 @@ import (
 	"github.com/AmirRezaM75/kenopsiarelay/schemas"
 )
 
+type HubConfig[S GameState] struct {
+	Context            context.Context
+	DispatchBufferSize int
+	GameSlug           string
+	OnMessageReceived  MessageReceivedHandler[S]
+	OnPlayerJoined     PlayerJoinedHandler[S]
+	OnPlayerLeft       PlayerLeftHandler[S]
+	OnGameCreated      GameCreatedHandler[S]
+	GameStateFactory   func() S
+}
+
 type Hub[S GameState] struct {
 	GameSlug string
 	Games    syncx.Map[string, *Game[S]]
@@ -39,31 +50,24 @@ type Hub[S GameState] struct {
 // Accept context from user application level
 // This follows Go best practices where context flows down from caller to callee
 // The context controls when the hub should shut down gracefully
-func NewHub[S GameState](
-	ctx context.Context,
-	dispatchBufferSize int,
-	gameSlug string,
-	messageReceivedHandler MessageReceivedHandler[S],
-	playerJoinedHandler PlayerJoinedHandler[S],
-	playerLeftHandler PlayerLeftHandler[S],
-	gameStateFactory func() S,
-) *Hub[S] {
+func NewHub[S GameState](config *HubConfig[S]) *Hub[S] {
 	// Ensure buffer size is positive, use default if not specified
 	// Zero or negative values could cause unbuffered channels or panics
-	bufferSize := dispatchBufferSize
+	bufferSize := config.DispatchBufferSize
 
 	if bufferSize <= 0 {
 		bufferSize = 500
 	}
 
 	return &Hub[S]{
-		GameSlug:          gameSlug,
-		Context:           ctx,
+		GameSlug:          config.GameSlug,
+		Context:           config.Context,
 		Dispatch:          make(chan *schemas.DispatcherMessage, bufferSize),
-		OnMessageReceived: messageReceivedHandler,
-		OnPlayerJoined:    playerJoinedHandler,
-		OnPlayerLeft:      playerLeftHandler,
-		GameStateFactory:  gameStateFactory,
+		OnMessageReceived: config.OnMessageReceived,
+		OnPlayerJoined:    config.OnPlayerJoined,
+		OnPlayerLeft:      config.OnPlayerLeft,
+		OnGameCreated:     config.OnGameCreated,
+		GameStateFactory:  config.GameStateFactory,
 	}
 }
 

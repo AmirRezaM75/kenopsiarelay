@@ -36,15 +36,7 @@ func NewGameServer[S entities.GameState](config Config[S]) *GameServer[S] {
 
 	logx.NewLogger()
 
-	hub := entities.NewHub(
-		config.Context,
-		config.DispatchBufferSize,
-		config.GameSlug,
-		config.OnMessageReceived,
-		config.OnPlayerJoined,
-		config.OnPlayerLeft,
-		config.GameStateFactory,
-	)
+	hub := entities.NewHub(config.ToHubConfig())
 
 	userRepository := kenopsiauser.NewUserRepository(
 		config.UserService.BaseURL,
