@@ -2,15 +2,21 @@ package entities
 
 import (
 	"context"
-
+	"github.com/AmirRezaM75/kenopsiarelay/pkg/logx"
 	"github.com/AmirRezaM75/kenopsiarelay/pkg/syncx"
 	"github.com/AmirRezaM75/kenopsiarelay/schemas"
+	"go.uber.org/zap"
 )
+
+type PublisherService interface {
+	Publish(message string) error
+}
 
 type HubConfig[S GameState] struct {
 	Context            context.Context
 	DispatchBufferSize int
 	GameSlug           string
+	PublisherService   PublisherService
 	OnMessageReceived  MessageReceivedHandler[S]
 	OnPlayerJoined     PlayerJoinedHandler[S]
 	OnPlayerLeft       PlayerLeftHandler[S]
@@ -32,6 +38,8 @@ type Hub[S GameState] struct {
 	// Using a pointer ensures that there is only one instance of the mutex,
 	// maintaining proper synchronization across all operations.
 	Dispatch chan *schemas.DispatcherMessage
+	// PublisherService for publishing game events to external systems
+	PublisherService PublisherService
 	// OnMessageReceived is responsible for processing incoming messages from connected clients.
 	// Within this handler, you should parse the incoming request, perform any necessary validation,
 	// and update your game state accordingly based on the content of the message.
@@ -63,6 +71,7 @@ func NewHub[S GameState](config *HubConfig[S]) *Hub[S] {
 		GameSlug:          config.GameSlug,
 		Context:           config.Context,
 		Dispatch:          make(chan *schemas.DispatcherMessage, bufferSize),
+		PublisherService:  config.PublisherService,
 		OnMessageReceived: config.OnMessageReceived,
 		OnPlayerJoined:    config.OnPlayerJoined,
 		OnPlayerLeft:      config.OnPlayerLeft,
@@ -128,5 +137,31 @@ func (hub *Hub[S]) RemoveGame(gameId string) {
 			return true
 		})
 		hub.Games.Delete(gameId)
+	}
+}
+
+func (hub *Hub[S]) EndGame(gameId, lobbyId string) {
+	if hub.PublisherService == nil {
+		return
+	}
+
+	message, err := schemas.GameEndedEvent(gameId, lobbyId, hub.GameSlug)
+	if err != nil {
+		logx.Logger.Error("failed to create GameEndedEvent",
+			zap.String("gameId", gameId),
+			zap.String("lobbyId", lobbyId),
+			zap.Error(err),
+		)
+
+		return
+	}
+
+	err = hub.PublisherService.Publish(message)
+	if err != nil {
+		logx.Logger.Error("failed to publish GameEndedEvent",
+			zap.String("gameId", gameId),
+			zap.String("lobbyId", lobbyId),
+			zap.Error(err),
+		)
 	}
 }

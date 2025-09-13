@@ -36,7 +36,15 @@ func NewGameServer[S entities.GameState](config Config[S]) *GameServer[S] {
 
 	logx.NewLogger()
 
-	hub := entities.NewHub(config.ToHubConfig())
+	publisherService := services.NewPublisherService(
+		config.Publisher.Redis.Host,
+		config.Publisher.Redis.Port,
+		config.Publisher.Redis.Password,
+	)
+
+	hubConfig := config.ToHubConfig()
+	hubConfig.PublisherService = publisherService
+	hub := entities.NewHub(hubConfig)
 
 	userRepository := kenopsiauser.NewUserRepository(
 		config.UserService.BaseURL,
@@ -46,12 +54,6 @@ func NewGameServer[S entities.GameState](config Config[S]) *GameServer[S] {
 	lobbyRepository := kenopsialobby.NewLobbyRepository(
 		config.LobbyService.BaseURL,
 		config.LobbyService.Token,
-	)
-
-	publisherService := services.NewPublisherService(
-		config.Publisher.Redis.Host,
-		config.Publisher.Redis.Port,
-		config.Publisher.Redis.Password,
 	)
 
 	gameService := services.NewGameService(hub, userRepository, lobbyRepository, publisherService)
